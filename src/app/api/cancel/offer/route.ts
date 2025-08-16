@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+// ...existing code...
 import type { NextRequest } from 'next/server';
 
 // In-memory store for demonstration (replace with DB in production)

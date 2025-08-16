@@ -1,4 +1,6 @@
 {
+  "deno.enable": false,
+  "editor.stickyScroll.enabled": true,
   "deno.enablePaths": [
     "supabase/functions"
   ],

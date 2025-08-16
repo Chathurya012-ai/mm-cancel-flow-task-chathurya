@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 
 // Utility to generate a random CSRF token
 function generateCsrfToken(length = 32) {
@@ -11,7 +10,7 @@ function generateCsrfToken(length = 32) {
   return token;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const csrfToken = generateCsrfToken();
   // Set CSRF token as a secure, HttpOnly cookie
   const response = NextResponse.json({ csrfToken });
