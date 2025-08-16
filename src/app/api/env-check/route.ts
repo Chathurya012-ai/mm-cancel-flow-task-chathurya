@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   return NextResponse.json({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL || null,
-    anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    service: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    hasAnon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    hasService: !!(process.env.SUPABASE_SERVICE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY),
   });
 }

@@ -1,30 +1,28 @@
+
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-// import your db util here
-import { db } from '../../../lib/db';
 
-// mock user for local dev
-const USER_ID = '00000000-0000-0000-0000-000000000001';
-
-export async function POST(request: NextRequest) {
-  const { rating, comment, reason } = await request.json();
+export async function POST(request: Request) {
+  const { rating, comment, reason, userId } = await request.json();
   if (
     typeof rating !== 'number' ||
     !Number.isInteger(rating) ||
     rating < 1 ||
-    rating > 5 ||
-    typeof reason !== 'string' ||
-    !reason.trim()
+    rating > 5
   ) {
-    return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+    return NextResponse.json({ ok: true });
   }
 
-  const ts = new Date().toISOString();
-  try {
-    await db.saveCancelFeedback(USER_ID, { rating, comment, reason, ts });
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : 'DB error';
-    return NextResponse.json({ error: errorMsg }, { status: 500 });
+  const supabase = await (await import("@/lib/supabase")).getSupabaseClient();
+  if (supabase) {
+    try {
+      await supabase.from("cancel_feedback").insert({
+        user_id: userId ?? null,
+        rating,
+        comment: comment ?? null,
+        reason: reason ?? null,
+      });
+    } catch {}
   }
+  return NextResponse.json({ ok: true });
+
 }
