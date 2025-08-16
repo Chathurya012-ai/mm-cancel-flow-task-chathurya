@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import CancelFlowModal from "@/components/CancelFlowModal";
+import Image from "next/image";
 
 const mockUser = { email: "user@example.com", id: "1" };
 
 export default function ProfilePage() {
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -15,10 +15,6 @@ export default function ProfilePage() {
     useState<"active" | "canceled">("active");
   const [nextPayment, setNextPayment] = useState<string | null>("September 15");
 
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-    setTimeout(() => setIsSigningOut(false), 800);
-  };
 
   const handleCanceled = () => {
     setSubscriptionStatus("canceled");
@@ -45,9 +41,11 @@ export default function ProfilePage() {
       <div className="relative z-10 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-6 max-w-3xl w-full text-gray-800">
         {/* header */}
         <div className="flex items-center gap-4 mb-4">
-          <img
+          <Image
             src="/mihailo-profile.jpeg"
             alt="Profile"
+            width={96}
+            height={96}
             className="w-24 h-24 rounded-full border-4 border-white shadow-lg"
           />
           <h1 className="text-2xl font-bold">My Profile</h1>

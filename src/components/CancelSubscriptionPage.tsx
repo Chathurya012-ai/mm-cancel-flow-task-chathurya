@@ -1,13 +1,12 @@
 "use client";
 import Image from "next/image";
 
-type CancelSubscriptionPageProps = {
-  csrf: string;
-  onClose?: () => void;
-  variant: "A" | "B";
-};
+type CancelSubscriptionPageProps = { csrf: string; onClose?: () => void; variant: "A" | "B"; };
 
 export default function CancelSubscriptionPage({ csrf, onClose, variant }: CancelSubscriptionPageProps) {
+  void csrf;
+  void onClose;
+  void variant;
   return (
     <div className="relative min-h-dvh">
       {/* Absolute background layer */}

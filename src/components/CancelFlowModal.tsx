@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const AVATAR_SRC = "/mihailo-profile.jpeg";
 const TOO_EXPENSIVE = "Too expensive";
@@ -19,9 +18,11 @@ function ModalHeader({ onClose }: { onClose: () => void }) {
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <img
+        <Image
           src={AVATAR_SRC}
           alt="Mihoilo account avatar"
+          width={32}
+          height={32}
           className="w-8 h-8 rounded-full border border-white shadow"
         />
         <span className="text-lg font-semibold">Mihiolo</span>
@@ -80,6 +81,8 @@ function StepBody(props: StepBodyProps) {
     price,
     step2Mode,
     onCanceled,
+  setLoading,
+  onClose,
   } = props;
 
   // feedback-only state
@@ -286,25 +289,25 @@ function StepBody(props: StepBodyProps) {
         </button>
         <button
           className="rounded-lg bg-red-600 px-4 py-2 font-medium text-white"
-          disabled={props.loading}
+          disabled={loading}
           onClick={async () => {
-            props.setLoading(true);
-            props.setError(null);
+            setLoading(true);
+            setError(null);
             const res = await fetch("/api/subscription/cancel", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "CSRF-Token": props.csrf,
+                "CSRF-Token": csrf,
               },
             });
             const data = await res.json().catch(() => null);
             if (res.ok && (data?.ok || data?.status === "canceled")) {
-              props.onCanceled?.();
-              props.onClose();
+              onCanceled?.();
+              onClose();
             } else {
-              props.setError(data?.error || "Could not cancel subscription.");
+              setError(data?.error || "Could not cancel subscription.");
             }
-            props.setLoading(false);
+            setLoading(false);
           }}
         >
           Confirm cancel

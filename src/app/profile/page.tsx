@@ -45,9 +45,11 @@ export default function ProfilePage() {
       <div className="relative z-10 bg-white/80 rounded-2xl shadow-xl p-4 sm:p-6 max-w-[92vw] sm:max-w-3xl w-full text-gray-800">
         {/* Avatar & header */}
         <div className="flex items-center gap-4 mb-4">
-          <img
+          <Image
             src="/mihailo-profile.jpeg"
             alt="Profile"
+            width={96}
+            height={96}
             className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white shadow-lg"
           />
           <h1 className="text-xl sm:text-2xl font-bold">My Profile</h1>

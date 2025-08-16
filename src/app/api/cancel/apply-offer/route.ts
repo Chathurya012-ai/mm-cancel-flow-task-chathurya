@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const lastReason = (data?.reason || "").trim().toLowerCase().replace(/\s+/g, "_");
 
   // Check for persisted variant
-  const { data: variantData, error: variantError } = await supabaseAdmin
+  const { data: variantData } = await supabaseAdmin
     .from("cancellations")
     .select("downsell_variant")
     .eq("user_id", USER_ID)

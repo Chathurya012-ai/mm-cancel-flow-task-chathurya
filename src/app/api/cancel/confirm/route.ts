@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { db } from '../../../lib/db';
 
 // Stub: get userId from session/auth
-function getUserIdFromSession(request: NextRequest): string {
+function getUserIdFromSession(): string {
   // Replace with real session logic
   return '00000000-0000-0000-0000-000000000001';
 }
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Missing CSRF-Token' }, { status: 400 });
   }
 
-  const userId = getUserIdFromSession(request);
+  const userId = getUserIdFromSession();
   const canceledAt = new Date().toISOString();
   try {
     // Update subscriptions table
@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       next_payment_at: null,
     });
     return NextResponse.json({ ok: true, status: 'canceled', canceledAt, nextPayment: null });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err?.message || 'DB error' }, { status: 400 });
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : 'DB error';
+    return NextResponse.json({ ok: false, error: errorMsg }, { status: 400 });
   }
 }

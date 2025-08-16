@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
   try {
     await db.saveCancelFeedback(USER_ID, { rating, comment, reason, ts });
     return NextResponse.json({ ok: true });
-  } catch (err) {
-    return NextResponse.json({ error: 'DB error' }, { status: 500 });
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'DB error';
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
