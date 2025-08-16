@@ -1,0 +1,29 @@
+### Feedback
+POST http://localhost:3000/api/cancel/feedback
+Content-Type: application/json
+X-CSRF-Token: test
+
+{
+  "rating": 4,
+  "comment": "Nice app",
+  "reason": "Not using enough",
+  "userId": "user_123"
+}
+
+### Cancel Subscription
+POST http://localhost:3000/api/subscription/cancel
+Content-Type: application/json
+X-CSRF-Token: test
+
+{}
+### Apply Offer
+POST http://localhost:3000/api/cancel/apply-offer
+Content-Type: application/json
+X-CSRF-Token: test
+
+{
+  "variant": "B",
+  "reason": "Too expensive",
+  "price": 15,
+  "userId": "user_123"
+}

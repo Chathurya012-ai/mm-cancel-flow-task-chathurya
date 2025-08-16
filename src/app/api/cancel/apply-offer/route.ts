@@ -1,16 +1,5 @@
-
 import { NextResponse } from 'next/server';
-
-async function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  const { createClient } = await import('@supabase/supabase-js');
-  return createClient(url, key);
-}
-
-const USER_ID = "00000000-0000-0000-0000-000000000001";
-const ORIGINAL_PRICE = 100;
+import { getSupabaseClient } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   // CSRF check
@@ -31,7 +20,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const supabase = await (await import("@/lib/supabase")).getSupabaseClient();
+  // Persist offer if needed
+  const supabase = getSupabaseClient();
   if (supabase) {
     try {
       await supabase.from("offers").insert({
@@ -40,7 +30,9 @@ export async function POST(request: Request) {
         reason,
         price: typeof price === "number" ? price : null,
       });
-    } catch {}
+    } catch {
+      // Optionally log error
+    }
   }
 
   return NextResponse.json({ ok: true, status: "offer_applied" }, { status: 200 });
