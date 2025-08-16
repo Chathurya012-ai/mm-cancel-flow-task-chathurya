@@ -407,17 +407,21 @@ export default function CancelFlowModal({ open, onClose, onCanceled }: CancelFlo
     try {
       const res = await fetch("/api/cancel/apply-offer", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "CSRF-Token": csrf },
+        headers: {
+          "Content-Type": "application/json",
+          "CSRF-Token": csrf,
+          "X-CSRF-Token": csrf,
+        },
         body: JSON.stringify({ variant, reason, price }),
       });
       const d = await res.json().catch(() => null);
       if (!res.ok) {
-        setError(d?.error || "Could not apply offer.");
+        setError(d?.error || "Sorry, something went wrong accepting the offer. Please try again or contact support.");
       } else {
         onClose();
       }
     } catch {
-      setError("Network error.");
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
