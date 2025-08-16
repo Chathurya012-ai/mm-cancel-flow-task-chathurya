@@ -1,0 +1,15 @@
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import type { NextRequest } from 'next/server';
+
+// In-memory store for demonstration (replace with DB in production)
+const cancelledSubscriptions: Record<string, boolean> = {};
+
+export async function POST(request: NextRequest) {
+  const { userId } = await request.json();
+  if (!userId) {
+    return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+  }
+  cancelledSubscriptions[userId] = true;
+  return NextResponse.json({ cancelled: true });
+}
