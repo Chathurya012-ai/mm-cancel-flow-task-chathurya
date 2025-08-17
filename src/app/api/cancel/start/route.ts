@@ -6,47 +6,36 @@ import { randomInt } from 'crypto';
 
 export async function POST(request: Request) {
   try {
-    const { userId, reason } = await request.json();
-    if (!userId || typeof reason !== 'string') {
-      return NextResponse.json({ error: 'Missing userId or reason' }, { status: 400 });
-    }
-    const trimmed = reason.trim();
-    if (trimmed.length < 2 || trimmed.length > 200) {
-      return NextResponse.json({ error: 'Reason must be 2-200 characters.' }, { status: 400 });
-    }
+    const body = await request.json();
+    const userId = body?.userId ?? "1";
+    const reason = typeof body?.reason === "string" ? body.reason : null;
 
+    let variant: 'A' | 'B' = 'A';
     const supabase = getSupabaseClient();
     if (supabase) {
-      // Check last variant for user, else assign securely
-      let variant = 'A';
+      // Query for latest pending cancellation for this user
       const { data: last, error: selErr } = await supabase
         .from('cancellations')
         .select('downsell_variant')
         .eq('user_id', userId)
+        .eq('pending_cancellation', true)
         .order('created_at', { ascending: false })
         .limit(1);
-      if (!selErr && last && last.length > 0 && last[0].downsell_variant) {
+      if (!selErr && last && last.length > 0 && (last[0].downsell_variant === 'A' || last[0].downsell_variant === 'B')) {
         variant = last[0].downsell_variant;
       } else {
-        variant = randomInt(2) === 0 ? 'A' : 'B';
+        variant = randomInt(0,2) === 0 ? 'A' : 'B';
+        await supabase.from('cancellations').insert({
+          user_id: userId,
+          downsell_variant: variant,
+          reason: reason ?? null,
+          accepted_downsell: false,
+          pending_cancellation: true,
+          created_at: new Date().toISOString(),
+        });
       }
-
-      // Mark subscription as pending_cancellation (stub: update subscriptions table)
-      await supabase
-        .from('subscriptions')
-        .update({ status: 'pending_cancellation' })
-        .eq('user_id', userId);
-
-      // Insert cancellation reason
-      await supabase.from('cancellations').insert({
-        user_id: userId,
-        downsell_variant: variant,
-        reason: trimmed,
-        accepted_downsell: false,
-        created_at: new Date().toISOString(),
-      });
     }
-    return NextResponse.json({ ok: true, status: 'started' });
-  } catch {} // ignore error, always return ok
-  return NextResponse.json({ ok: true, status: 'started' });
+    return NextResponse.json({ ok: true, status: "started", variant });
+  } catch {}
+  return NextResponse.json({ ok: true, status: "started", variant: "A" });
 }

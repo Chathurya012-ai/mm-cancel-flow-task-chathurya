@@ -324,6 +324,24 @@ export interface CancelFlowModalProps {
 }
 
 export default function CancelFlowModal({ open, onClose, onCanceled }: CancelFlowModalProps) {
+  // Pin A/B variant and create pending row on open
+  useEffect(() => {
+    if (!open) return;
+    let didRun = false;
+    if (open && !didRun) {
+      didRun = true;
+      fetch("/api/cancel/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+        },
+        body: JSON.stringify({ userId: "1", reason: selectedReason || "" }),
+      }).catch(() => {});
+    }
+    // Only run once per open
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   const reasonOptions = [
     "Too expensive",
     "Not using enough",
