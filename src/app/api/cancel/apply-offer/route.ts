@@ -8,31 +8,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Missing CSRF token" }, { status: 403 });
   }
 
-  let data;
+  let body;
   try {
-    data = await request.json();
+    body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { variant, reason, price, userId } = data || {};
+  const { variant, reason } = body || {};
   if (!variant || !reason) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  // Persist offer if needed
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
-      await supabase.from("offers").insert({
-        user_id: userId ?? null,
-        variant,
-        reason,
-        price: typeof price === "number" ? price : null,
-      });
-    } catch {
-      // Optionally log error
-    }
+      // Find latest pending cancellation for user_id = "1"
+      const { data: rows, error } = await supabase
+        .from("cancellations")
+        .select("id")
+        .eq("user_id", "1")
+        .eq("pending_cancellation", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (!error && rows && rows.length > 0) {
+        const id = rows[0].id;
+        await supabase
+          .from("cancellations")
+          .update({
+            downsell_variant: variant,
+            reason,
+            accepted_downsell: true,
+            pending_cancellation: false,
+          })
+          .eq("id", id);
+      }
+    } catch {}
   }
 
   return NextResponse.json({ ok: true, status: "offer_applied" }, { status: 200 });
