@@ -321,27 +321,15 @@ export interface CancelFlowModalProps {
   open: boolean;
   onClose: () => void;
   onCanceled?: () => void; // parent can flip status
+  userId?: string;
 }
 
-export default function CancelFlowModal({ open, onClose, onCanceled }: CancelFlowModalProps) {
-  // Pin A/B variant and create pending row on open
-  useEffect(() => {
-    if (!open) return;
-    let didRun = false;
-    if (open && !didRun) {
-      didRun = true;
-      fetch("/api/cancel/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": csrf,
-        },
-        body: JSON.stringify({ userId: "1", reason: selectedReason || "" }),
-      }).catch(() => {});
-    }
-    // Only run once per open
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+export default function CancelFlowModal({
+  open,
+  onClose,
+  onCanceled,
+  userId = "1",
+}: CancelFlowModalProps) {
   const reasonOptions = [
     "Too expensive",
     "Not using enough",
@@ -387,9 +375,25 @@ export default function CancelFlowModal({ open, onClose, onCanceled }: CancelFlo
       setError("Please select a reason");
       return;
     }
+
     setError(null);
     setLoading(true);
 
+    try {
+      // 1) Pin A/B + mark pending in DB
+      await fetch("/api/cancel/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+        },
+        body: JSON.stringify({ userId, reason: selectedReason }),
+      });
+    } catch {
+      // non-fatal; we’ll still try to continue
+    }
+
+    // 2) If not “Too expensive”, go to feedback
     if (selectedReason !== TOO_EXPENSIVE) {
       setStep2Mode("feedback");
       setOfferEligible(false);
@@ -400,14 +404,22 @@ export default function CancelFlowModal({ open, onClose, onCanceled }: CancelFlo
       return;
     }
 
+    // 3) Ask server for pinned variant + price
     try {
-      const r = await fetch(`/api/cancel/variant?reason=too_expensive`);
-      const d = await r.json().catch(() => null);
+      const r = await fetch("/api/cancel/variant?reason=too_expensive");
+      let d = null;
+      if (r.ok) {
+        try {
+          d = await r.json();
+        } catch {
+          // JSON parse error
+        }
+      }
       if (r.ok && d?.offerEligible) {
         setOfferEligible(true);
         if (d?.variant === "A" || d?.variant === "B") setVariant(d.variant);
         if (typeof d?.price === "number") setPrice(d.price);
-        setStep2Mode("offer");
+        setStep2Mode("offer"); // 👈 show offer step
       } else {
         setOfferEligible(false);
         setStep2Mode("feedback");

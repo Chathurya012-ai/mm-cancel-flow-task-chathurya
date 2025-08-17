@@ -1,12 +1,5 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { db } from '../../../lib/db';
-
-// Stub: get userId from session/auth
-function getUserIdFromSession(): string {
-  // Replace with real session logic
-  return '00000000-0000-0000-0000-000000000001';
-}
+import { NextResponse, NextRequest } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function POST(request: NextRequest) {
   const csrf = request.headers.get('CSRF-Token');
@@ -14,18 +7,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Missing CSRF-Token' }, { status: 400 });
   }
 
-  const userId = getUserIdFromSession();
-  const canceledAt = new Date().toISOString();
-  try {
-    // Update subscriptions table
-    await db.cancelSubscription(userId, {
-      status: 'canceled',
-      canceled_at: canceledAt,
-      next_payment_at: null,
-    });
-    return NextResponse.json({ ok: true, status: 'canceled', canceledAt, nextPayment: null });
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'DB error';
-    return NextResponse.json({ ok: false, error: errorMsg }, { status: 400 });
+  // Get userId from request body (or session in production)
+  const { userId } = await request.json();
+  if (!userId) {
+    return NextResponse.json({ ok: false, error: 'Missing userId' }, { status: 400 });
   }
+
+  // Update the latest cancellations row for this user
+  const { error } = await supabaseAdmin
+    .from('cancellations')
+    .update({ accepted_downsell: false, pending_cancellation: false })
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (error) {
+    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true, status: 'canceled' });
 }

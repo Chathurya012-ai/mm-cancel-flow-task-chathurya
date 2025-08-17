@@ -13,16 +13,17 @@ export async function POST(request: Request) {
     let variant: 'A' | 'B' = 'A';
     const supabase = getSupabaseClient();
     if (supabase) {
-      // Query for latest pending cancellation for this user
+      // Query for latest cancellation for this user
       const { data: last, error: selErr } = await supabase
         .from('cancellations')
-        .select('downsell_variant')
+        .select('id, downsell_variant')
         .eq('user_id', userId)
-        .eq('pending_cancellation', true)
         .order('created_at', { ascending: false })
         .limit(1);
       if (!selErr && last && last.length > 0 && (last[0].downsell_variant === 'A' || last[0].downsell_variant === 'B')) {
         variant = last[0].downsell_variant;
+        // Update pending_cancellation = true
+        await supabase.from('cancellations').update({ pending_cancellation: true }).eq('id', last[0].id);
       } else {
         variant = randomInt(0,2) === 0 ? 'A' : 'B';
         await supabase.from('cancellations').insert({

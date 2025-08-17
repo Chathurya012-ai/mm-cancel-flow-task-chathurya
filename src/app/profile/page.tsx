@@ -6,6 +6,8 @@ import Image from "next/image";
 
 export default function ProfilePage() {
   const [open, setOpen] = useState(false);
+  // Dev-only test user ID
+  const [testUserId, setTestUserId] = useState('1');
 
   const handleCanceled = () => {
     // Your cancel logic here
@@ -16,6 +18,19 @@ export default function ProfilePage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center pb-[env(safe-area-inset-bottom)]">
+      {/* DEV ONLY: test user ID input */}
+      {process.env.NODE_ENV !== 'production' && (
+        <div className="fixed top-2 right-2 z-50 bg-yellow-100 border border-yellow-400 rounded px-2 py-1 text-xs shadow">
+          <label htmlFor="testUserId" className="mr-2">Test User ID:</label>
+          <input
+            id="testUserId"
+            type="text"
+            value={testUserId}
+            onChange={e => setTestUserId(e.target.value)}
+            className="border rounded px-1 py-0.5 text-xs w-16"
+          />
+        </div>
+      )}
       {/* background image (light blur + shade) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <Image
@@ -81,6 +96,7 @@ export default function ProfilePage() {
           Cancel MigrateMate
         </button>
         <CancelFlowModal open={open} onClose={() => setOpen(false)} onCanceled={handleCanceled} />
+  <CancelFlowModal open={open} onClose={() => setOpen(false)} onCanceled={handleCanceled} userId={testUserId} />
       </div>
     </div>
   );

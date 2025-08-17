@@ -6,12 +6,11 @@ export async function POST() {
   const supabase = (await import("@/lib/supabase")).getSupabaseClient();
   if (supabase) {
     try {
-      // Find latest pending cancellation for user_id = "1"
+      // Find latest cancellation for user_id = "1"
       const { data: rows, error } = await supabase
         .from("cancellations")
         .select("id")
         .eq("user_id", "1")
-        .eq("pending_cancellation", true)
         .order("created_at", { ascending: false })
         .limit(1);
       if (!error && rows && rows.length > 0) {

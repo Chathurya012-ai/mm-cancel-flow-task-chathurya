@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 // ...existing code...
-import type { NextRequest } from 'next/server';
 
 // In-memory store for demonstration (replace with DB in production)
 const downsellAccepted: Record<string, boolean> = {};
